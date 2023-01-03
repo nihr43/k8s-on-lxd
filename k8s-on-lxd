@@ -1,36 +1,121 @@
 #!/usr/bin/python3
 
 import uuid
+import time
+import json
 
 
-def create_node(client, logging):
+def create_node(client, log):
     name = 'k8s-lxd-' + str(uuid.uuid4())
     config = {'name': name,
               'source': {'type': 'image',
                          'mode': 'pull',
                          'server': 'https://images.linuxcontainers.org',
                          'protocol': 'simplestreams',
-                         'alias': 'debian/12'},
+                         'alias': 'ubuntu/22.10'},
               'config': {'limits.cpu': '2',
                          'limits.memory': '8GB'},
               'type': 'virtual-machine'}
-    logging.info('creating node ' + name)
+    log.info('creating node ' + name)
     inst = client.instances.create(config, wait=True)
     inst.start(wait=True)
-    return name
+    wait_until_ready(inst, log)
+    return inst
 
 
-def cleanup(client, logging):
+def wait_until_ready(instance, log):
+    '''
+    waits until an instance is executable
+    '''
+    count = 30
+    for i in range(count):
+        if instance.execute(['hostname']).exit_code == 0:
+            break
+        if i == count-1:
+            log.info('timed out waiting')
+            exit(1)
+        log.info('waiting for lxd agent on ' + instance.name)
+        time.sleep(2)
+
+
+def bootstrap_node(instance, log):
+    '''
+    installs microk8s on given instance
+    returns when microk8s node is "ready"
+    '''
+    # "(execute) returns a tuple of (exit_code, stdout, stderr).
+    #  This method will block while the command is executed"
+    # snapd appears to perform some bootstrapping actions after this exits
+    out = instance.execute(['apt', 'install', 'snapd', '-y'])
+    log.info('snapd installed')
+
+    '''
+    snapd performs some bootstrapping asynchronously with 'apt install',
+    so subsequent 'snap install's can fail for a monent.
+    '''
+    count = 30
+    for i in range(count):
+        out = instance.execute(['snap', 'install', 'microk8s', '--classic'])
+        if out.exit_code == 0:
+            log.info(out.stdout)
+            break
+        if i == count-1:
+            log.info('timed out waiting for snapd')
+            exit(1)
+        log.info(out.stderr)
+        time.sleep(2)
+    assert_kubernetes_ready(instance, log)
+
+
+def assert_kubernetes_ready(instance, log):
+    '''
+    shutting down before the microk8s finishes bootstrapping appears to trash the installation.
+    here we wait for `/snap/bin/microk8s kubectl` to become executable, and then for the
+    kubernetes 'node' to become 'ready'.
+    '''
+    count = 30
+    for i in range(count):
+        log.info('waiting for k8s to become ready on ' + instance.name)
+        out = instance.execute(['/snap/bin/microk8s', 'kubectl', 'wait', '--for=condition=ready', 'node', instance.name])
+        if out.exit_code == 0:
+            break
+        if i == count-1:
+            log.info('timed out waiting for microk8s')
+            exit(1)
+        log.info(out.stderr)
+        time.sleep(2)
+
+
+def join_cluster(leader, join_node, log):
+    '''
+    given the leader node and a node to be joined,
+    add the new node and wait until ready.
+    both are of type lxd instance.
+    '''
+    add_node = leader.execute(['/snap/bin/microk8s', 'add-node', '--format=json'])
+    if add_node.exit_code != 0:
+        log.info('unable to generate cluster join token')
+        exit(1)
+    add_node_json = json.loads(add_node.stdout)
+    join_token = add_node_json["urls"][0]
+    log.info('generated join token: ' + join_token)
+
+    join_node.execute(['/snap/bin/microk8s', 'join', join_token])
+    assert_kubernetes_ready(join_node, log)
+    log.info(join_node.name + ' successfully joined cluster')
+
+
+def cleanup(client, log):
     instances_to_delete = []
     for i in client.instances.all():
         if i.name.startswith('k8s-lxd'):
-            logging.info('found ' + i.name)
+            log.info('found ' + i.name)
             instances_to_delete.append(i)
 
     for i in instances_to_delete:
         i.stop(wait=True)
         i.delete()
-        logging.info(i.name + ' deleted')
+        log.info(i.name + ' deleted')
 
 
 if __name__ == '__main__':
@@ -39,7 +124,9 @@ if __name__ == '__main__':
         import logging
         import argparse
 
-        logging.basicConfig(level=logging.INFO)
+        logging.basicConfig()
+        logger = logging.getLogger('k8s-on-lxd')
+        logger.setLevel(logging.INFO)
         client = pylxd.Client()
 
         parser = argparse.ArgumentParser()
@@ -48,12 +135,17 @@ if __name__ == '__main__':
         args = parser.parse_args()
 
         if args.clean:
-            cleanup(client, logging)
+            cleanup(client, logger)
             exit()
 
         cluster_size = args.n
 
-        for i in range(cluster_size):
-            create_node(client, logging)
+        leader = create_node(client, logger)
+        bootstrap_node(leader, logger)
+
+        for i in range(cluster_size - 1):
+            node = create_node(client, logger)
+            bootstrap_node(node, logger)
+            join_cluster(leader, node, logger)
 
     privileged_main()
