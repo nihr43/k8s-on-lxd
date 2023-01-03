@@ -8,29 +8,73 @@ This cluster is built to mirror my own physical hardware as much as possible; [m
 
 It is assumed your user account is already configured to use lxd.
 
-Create a five node cluster:
+Create a two node cluster:
 
 ```
-./k8s-on-lxd -n 5
-INFO:root:creating node k8s-lxd-03c98b3e-e8d7-4f11-95b2-7ac50e09651b
-INFO:root:creating node k8s-lxd-a799493f-8f9e-4d52-83a9-a2538ca15381
-INFO:root:creating node k8s-lxd-28ca2599-f948-4dad-8455-3d4d58ee6ecb
-INFO:root:creating node k8s-lxd-3f301501-fc3d-4794-8bb0-a755a6e51533
-INFO:root:creating node k8s-lxd-06ba0c0d-aaff-4753-bc77-aa91d43b5e57
+$ ./k8s-on-lxd -n2
+INFO:k8s-on-lxd:creating node k8s-lxd-554ae2
+INFO:k8s-on-lxd:waiting for lxd agent on k8s-lxd-554ae2
+INFO:k8s-on-lxd:snapd installed
+INFO:k8s-on-lxd:2023-01-03T22:21:22Z INFO Waiting for automatic snapd restart...
+microk8s (1.25/stable) v1.25.4 from Canonical** installed
+
+INFO:k8s-on-lxd:waiting for k8s to become ready on k8s-lxd-554ae2
+INFO:k8s-on-lxd:Error from server (NotFound): nodes "k8s-lxd-554ae2" not found
+
+INFO:k8s-on-lxd:waiting for k8s to become ready on k8s-lxd-554ae2
+INFO:k8s-on-lxd:Error from server (NotFound): nodes "k8s-lxd-554ae2" not found
+
+INFO:k8s-on-lxd:waiting for k8s to become ready on k8s-lxd-554ae2
+INFO:k8s-on-lxd:creating node k8s-lxd-125843
+INFO:k8s-on-lxd:waiting for lxd agent on k8s-lxd-125843
+INFO:k8s-on-lxd:snapd installed
+INFO:k8s-on-lxd:2023-01-03T22:23:01Z INFO Waiting for automatic snapd restart...
+microk8s (1.25/stable) v1.25.4 from Canonical** installed
+
+INFO:k8s-on-lxd:waiting for k8s to become ready on k8s-lxd-125843
+INFO:k8s-on-lxd:Error from server (NotFound): nodes "k8s-lxd-125843" not found
+
+INFO:k8s-on-lxd:waiting for k8s to become ready on k8s-lxd-125843
+INFO:k8s-on-lxd:Error from server (NotFound): nodes "k8s-lxd-125843" not found
+
+INFO:k8s-on-lxd:waiting for k8s to become ready on k8s-lxd-125843
+INFO:k8s-on-lxd:generated join token: 10.139.0.193:25000/6bd5a5a0041ff90b20c832fee6b364cc/686045620c28
+INFO:k8s-on-lxd:waiting for k8s to become ready on k8s-lxd-125843
+INFO:k8s-on-lxd:Error from server (NotFound): nodes "k8s-lxd-125843" not found
+
+INFO:k8s-on-lxd:waiting for k8s to become ready on k8s-lxd-125843
+INFO:k8s-on-lxd:k8s-lxd-125843 successfully joined cluster
+```
+
+The resulting cluster looks like this:
+
+```
+$ lxc ls
++------------------+---------+----------------------------+-------------------------------------------------+-----------------+-----------+
+|       NAME       |  STATE  |            IPV4            |                      IPV6                       |      TYPE       | SNAPSHOTS |
++------------------+---------+----------------------------+-------------------------------------------------+-----------------+-----------+
+| k8s-lxd-554ae2   | RUNNING | 10.139.0.193 (enp5s0)      | fd42:64fd:9854:7831:216:3eff:fefb:fd0a (enp5s0) | VIRTUAL-MACHINE | 0         |
+|                  |         | 10.1.212.64 (vxlan.calico) |                                                 |                 |           |
++------------------+---------+----------------------------+-------------------------------------------------+-----------------+-----------+
+| k8s-lxd-125843   | RUNNING | 10.139.0.194 (enp5s0)      | fd42:64fd:9854:7831:216:3eff:fec1:2c60 (enp5s0) | VIRTUAL-MACHINE | 0         |
+|                  |         | 10.1.33.192 (vxlan.calico) |                                                 |                 |           |
++------------------+---------+----------------------------+-------------------------------------------------+-----------------+-----------+
+
+```
+
+```
+$ lxc exec k8s-lxd-554ae2 -- /snap/bin/microk8s kubectl get nodes
+NAME             STATUS   ROLES    AGE     VERSION
+k8s-lxd-554ae2   Ready    <none>   4m18s   v1.25.4
+k8s-lxd-125843   Ready    <none>   87s     v1.25.4
 ```
 
 Clean up when you're done:
 
 ```
-./k8s-on-lxd --clean
-INFO:root:found k8s-lxd-03c98b3e-e8d7-4f11-95b2-7ac50e09651b
-INFO:root:found k8s-lxd-a799493f-8f9e-4d52-83a9-a2538ca15381
-INFO:root:found k8s-lxd-28ca2599-f948-4dad-8455-3d4d58ee6ecb
-INFO:root:found k8s-lxd-3f301501-fc3d-4794-8bb0-a755a6e51533
-INFO:root:found k8s-lxd-06ba0c0d-aaff-4753-bc77-aa91d43b5e57
-INFO:root:k8s-lxd-03c98b3e-e8d7-4f11-95b2-7ac50e09651b deleted
-INFO:root:k8s-lxd-a799493f-8f9e-4d52-83a9-a2538ca15381 deleted
-INFO:root:k8s-lxd-28ca2599-f948-4dad-8455-3d4d58ee6ecb deleted
-INFO:root:k8s-lxd-3f301501-fc3d-4794-8bb0-a755a6e51533 deleted
-INFO:root:k8s-lxd-06ba0c0d-aaff-4753-bc77-aa91d43b5e57 deleted
+$ ./k8s-on-lxd --clean
+INFO:k8s-on-lxd:found k8s-lxd-554ae2
+INFO:k8s-on-lxd:found k8s-lxd-125843
+INFO:k8s-on-lxd:k8s-lxd-554ae2 deleted
+INFO:k8s-on-lxd:k8s-lxd-125843 deleted
 ```
