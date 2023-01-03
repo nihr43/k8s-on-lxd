@@ -6,7 +6,7 @@ import json
 
 
 def create_node(client, log):
-    name = 'k8s-lxd-' + str(uuid.uuid4())
+    name = 'k8s-lxd-' + str(uuid.uuid4())[0:6]
     config = {'name': name,
               'source': {'type': 'image',
                          'mode': 'pull',
