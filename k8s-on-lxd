@@ -108,6 +108,20 @@ def join_cluster(leader, join_node, log):
     log.info(join_node.name + ' successfully joined cluster')
 
 
+def fetch_kubeconfig(instance, log):
+    cmd = instance.execute(['/snap/bin/microk8s', 'kubectl', 'config', 'view', '--raw'])
+    if cmd.exit_code != 0:
+        log.info('failed fetching kubeconfig')
+        log.info(cmd.stderr)
+        exit(1)
+
+    # we need to swap '127.0.0.1' for an ip reachable from the host
+    #   counting on enp5s0 .. [0] to be consistent for now..
+    ip = instance.state().network['enp5s0']['addresses'][0]['address']
+    yaml = cmd.stdout.replace('127.0.0.1', ip)
+    return yaml
+
+
 def cleanup(client, log):
     instances_to_delete = []
     for i in client.instances.all():
@@ -150,5 +164,11 @@ if __name__ == '__main__':
             node = create_node(client, logger)
             bootstrap_node(node, logger)
             join_cluster(leader, node, logger)
+
+        kubeconfig_text = fetch_kubeconfig(leader, logger)
+        with open('kubeconfig.yml', 'w') as kubeconfig_yml:
+            kubeconfig_yml.truncate()
+            kubeconfig_yml.write(kubeconfig_text)
+        logger.info('to access cluster, execute: export KUBECONFIG=$(realpath kubeconfig.yml)')
 
     privileged_main()
