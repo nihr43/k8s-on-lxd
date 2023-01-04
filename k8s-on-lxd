@@ -48,6 +48,9 @@ def bootstrap_node(instance, log):
     # snapd appears to perform some bootstrapping actions after this exits
     out = instance.execute(['apt', 'install', 'snapd', '-y'])
     log.info('snapd installed')
+    instance.execute(['growpart', '/dev/sda', '2'])
+    instance.execute(['resize2fs', '/dev/sda2'])
+    log.info('root partition extended')
 
     '''
     snapd performs some bootstrapping asynchronously with 'apt install',
