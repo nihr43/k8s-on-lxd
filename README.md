@@ -44,6 +44,7 @@ INFO:k8s-on-lxd:Error from server (NotFound): nodes "k8s-lxd-125843" not found
 
 INFO:k8s-on-lxd:waiting for k8s to become ready on k8s-lxd-125843
 INFO:k8s-on-lxd:k8s-lxd-125843 successfully joined cluster
+INFO:k8s-on-lxd:to access cluster, execute: export KUBECONFIG=$(realpath kubeconfig.yml)
 ```
 
 The resulting cluster looks like this:
@@ -62,11 +63,15 @@ $ lxc ls
 
 ```
 
+To access the cluster using `kubectl`, a kubeconfig file is provided in the working directory.
+The following will inform your kubectl to use this config; for life of your terminal.
+This hint is also provided on stdout:
+
 ```
-$ lxc exec k8s-lxd-554ae2 -- /snap/bin/microk8s kubectl get nodes
-NAME             STATUS   ROLES    AGE     VERSION
-k8s-lxd-554ae2   Ready    <none>   4m18s   v1.25.4
-k8s-lxd-125843   Ready    <none>   87s     v1.25.4
+$ export KUBECONFIG=$(realpath kubeconfig.yml)
+$ kubectl get nodes
+k8s-lxd-554ae2   Ready    <none>   3m39s   v1.25.4
+k8s-lxd-125843   Ready    <none>   69s     v1.25.4
 ```
 
 Clean up when you're done:
