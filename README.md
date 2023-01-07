@@ -74,12 +74,23 @@ k8s-lxd-554ae2   Ready    <none>   3m39s   v1.25.4
 k8s-lxd-125843   Ready    <none>   69s     v1.25.4
 ```
 
-Clean up when you're done:
+list clusters:
 
 ```
-$ ./k8s-on-lxd --clean
-INFO:k8s-on-lxd:found k8s-lxd-554ae2
-INFO:k8s-on-lxd:found k8s-lxd-125843
-INFO:k8s-on-lxd:k8s-lxd-554ae2 deleted
-INFO:k8s-on-lxd:k8s-lxd-125843 deleted
+$ ./k8s-on-lxd --list
+ceph
+mycluster
+default
+```
+
+delete a cluster:
+
+```
+$ ./k8s-on-lxd --delete --name mycluster
+privileged_main(): deleting cluster mycluster
+delete(): deleting node k8s-lxd-20f22
+delete(): deleting node k8s-lxd-c21a7
+delete(): deleting node k8s-lxd-035ea
+delete(): deleting node k8s-lxd-6e625
+delete(): deleting node k8s-lxd-e09b2
 ```

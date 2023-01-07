@@ -72,7 +72,7 @@ if __name__ == '__main__':
         if args.list:
             clusters = get_clusters(client, logger)
             for c in clusters:
-                logger.info('found cluster ' + c.name)
+                print(c.name)
 
         if args.delete:
             clusters = get_clusters(client, logger)
