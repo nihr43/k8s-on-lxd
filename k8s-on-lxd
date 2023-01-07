@@ -64,6 +64,7 @@ if __name__ == '__main__':
         parser.add_argument('--name', type=str, default='default')
         parser.add_argument('--delete', action='store_true')
         parser.add_argument('--list', action='store_true')
+        parser.add_argument('--kubectl', action='store_true')
         args = parser.parse_args()
 
         if args.clean:
@@ -86,7 +87,12 @@ if __name__ == '__main__':
             k8s.create(args.n, client, logger)
             logger.info(k8s.members)
 
-            kubeconfig_text = k8s.fetch_kubeconfig(logger)
+        if args.kubectl or args.create:
+            clusters = get_clusters(client, logger)
+            for c in clusters:
+                if c.name == args.name:
+                    c.fetch_kubeconfig(logger)
+            kubeconfig_text = c.fetch_kubeconfig(logger)
             with open('kubeconfig.yml', 'w') as kubeconfig_yml:
                 kubeconfig_yml.truncate()
                 kubeconfig_yml.write(kubeconfig_text)
