@@ -171,3 +171,19 @@ class Cluster:
             log.info('deleting node ' + i.name)
             i.stop(wait=True)
             i.delete(wait=True)
+
+    def start(self, client, log):
+        '''
+        start all nodes in a cluster
+        '''
+        for i in self.members:
+            log.info('starting node ' + i.name)
+            i.start(wait=True)
+
+    def stop(self, client, log):
+        '''
+        stop all nodes in a cluster
+        '''
+        for i in self.members:
+            log.info('stopping node ' + i.name)
+            i.stop(wait=True)

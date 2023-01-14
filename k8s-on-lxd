@@ -63,9 +63,22 @@ if __name__ == '__main__':
         parser.add_argument('--block-devices', type=int, default=0)
         parser.add_argument('--name', type=str, default='default')
         parser.add_argument('--delete', action='store_true')
+        parser.add_argument('--start', action='store_true')
+        parser.add_argument('--stop', action='store_true')
         parser.add_argument('--list', action='store_true')
         parser.add_argument('--kubectl', action='store_true')
         args = parser.parse_args()
+
+        if args.start:
+            clusters = get_clusters(client, logger)
+            for c in clusters:
+                if c.name == args.name:
+                    c.start(client, logger)
+        elif args.stop:
+            clusters = get_clusters(client, logger)
+            for c in clusters:
+                if c.name == args.name:
+                    c.stop(client, logger)
 
         if args.clean:
             cleanup(client, logger)
