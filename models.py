@@ -128,14 +128,12 @@ class Cluster:
         '''
         for i in range(size):
             node = create_node(client, 0, log)
+            node.description = '{"k8s-lxd-managed": true, "name": "%s"}'%self.name
+            node.save(wait=True)
             bootstrap_node(node, log)
             self.members.append(node)
             if i != 0:
                 join_cluster(self.members[0], node, log)
-
-        for i in self.members:
-            i.description = '{"k8s-lxd-managed": true, "name": "%s"}'%self.name
-            i.save(wait=True)
 
     def fetch_kubeconfig(self, log):
         cmd = self.members[0].execute(['/snap/bin/microk8s', 'kubectl', 'config', 'view', '--raw'])
