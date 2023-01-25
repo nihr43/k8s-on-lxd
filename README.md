@@ -1,12 +1,12 @@
 # kxd
 
-Provision a k8s cluster on lxd qemu-kvm instances for integration testing of real-world processes.
+Provision a k8s cluster on lxd qemu-kvm instances using microk8s.
 
-This cluster is built to mirror my own physical hardware as much as possible; [minikube](https://github.com/kubernetes/minikube) is probably of more use to you.
+This cluster is built to mirror my own physical hardware for "staging" and research purposes; [minikube](https://github.com/kubernetes/minikube) is probably of more use to you.
 
 ## usage
 
-It is assumed your user account is already configured to use lxd.
+It is assumed your user is already configured to use lxd.
 
 Create a two node cluster:
 
