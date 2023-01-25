@@ -113,6 +113,19 @@ def wait_until_ready(instance, log):
         time.sleep(2)
 
 
+class Snap:
+    '''
+    a snap assert and data file
+    cat json | jq '."channel-map"[] | select(.channel.name | index("1.10/stable"))'
+    '''
+    def __init__(self, name, instance, log):
+        '''
+        to initialize a Snap, we need a name an possibly a channel
+        '''
+        self.name = name
+
+
+
 class Cluster:
     '''
     a k8s cluster
@@ -130,6 +143,11 @@ class Cluster:
             node = create_node(client, 0, log)
             node.description = '{"k8s-lxd-managed": true, "name": "%s"}'%self.name
             node.save(wait=True)
+
+            # only the first node will download microk8s
+            if i = 0:
+                microk8s = snap('microk8s', node, log)
+
             bootstrap_node(node, log)
             self.members.append(node)
             if i != 0:
