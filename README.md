@@ -1,50 +1,50 @@
-# k8s-on-lxd
+# kxd
 
-Provision a k8s cluster on lxd qemu-kvm instances for integration testing of real-world processes.
+Provision a k8s cluster on lxd qemu-kvm instances using microk8s.
 
-This cluster is built to mirror my own physical hardware as much as possible; [minikube](https://github.com/kubernetes/minikube) is probably of more use to you.
+This cluster is built to mirror my own physical hardware for "staging" and research purposes; [minikube](https://github.com/kubernetes/minikube) is probably of more use to you.
 
 ## usage
 
-It is assumed your user account is already configured to use lxd.
+It is assumed your user is already configured to use lxd.
 
 Create a two node cluster:
 
 ```
-$ ./k8s-on-lxd -n2
-INFO:k8s-on-lxd:creating node k8s-lxd-554ae2
-INFO:k8s-on-lxd:waiting for lxd agent on k8s-lxd-554ae2
-INFO:k8s-on-lxd:snapd installed
-INFO:k8s-on-lxd:2023-01-03T22:21:22Z INFO Waiting for automatic snapd restart...
+$ ./kxd -n2
+INFO:kxd:creating node k8s-lxd-554ae2
+INFO:kxd:waiting for lxd agent on k8s-lxd-554ae2
+INFO:kxd:snapd installed
+INFO:kxd:2023-01-03T22:21:22Z INFO Waiting for automatic snapd restart...
 microk8s (1.25/stable) v1.25.4 from Canonical** installed
 
-INFO:k8s-on-lxd:waiting for k8s to become ready on k8s-lxd-554ae2
-INFO:k8s-on-lxd:Error from server (NotFound): nodes "k8s-lxd-554ae2" not found
+INFO:kxd:waiting for k8s to become ready on k8s-lxd-554ae2
+INFO:kxd:Error from server (NotFound): nodes "k8s-lxd-554ae2" not found
 
-INFO:k8s-on-lxd:waiting for k8s to become ready on k8s-lxd-554ae2
-INFO:k8s-on-lxd:Error from server (NotFound): nodes "k8s-lxd-554ae2" not found
+INFO:kxd:waiting for k8s to become ready on k8s-lxd-554ae2
+INFO:kxd:Error from server (NotFound): nodes "k8s-lxd-554ae2" not found
 
-INFO:k8s-on-lxd:waiting for k8s to become ready on k8s-lxd-554ae2
-INFO:k8s-on-lxd:creating node k8s-lxd-125843
-INFO:k8s-on-lxd:waiting for lxd agent on k8s-lxd-125843
-INFO:k8s-on-lxd:snapd installed
-INFO:k8s-on-lxd:2023-01-03T22:23:01Z INFO Waiting for automatic snapd restart...
+INFO:kxd:waiting for k8s to become ready on k8s-lxd-554ae2
+INFO:kxd:creating node k8s-lxd-125843
+INFO:kxd:waiting for lxd agent on k8s-lxd-125843
+INFO:kxd:snapd installed
+INFO:kxd:2023-01-03T22:23:01Z INFO Waiting for automatic snapd restart...
 microk8s (1.25/stable) v1.25.4 from Canonical** installed
 
-INFO:k8s-on-lxd:waiting for k8s to become ready on k8s-lxd-125843
-INFO:k8s-on-lxd:Error from server (NotFound): nodes "k8s-lxd-125843" not found
+INFO:kxd:waiting for k8s to become ready on k8s-lxd-125843
+INFO:kxd:Error from server (NotFound): nodes "k8s-lxd-125843" not found
 
-INFO:k8s-on-lxd:waiting for k8s to become ready on k8s-lxd-125843
-INFO:k8s-on-lxd:Error from server (NotFound): nodes "k8s-lxd-125843" not found
+INFO:kxd:waiting for k8s to become ready on k8s-lxd-125843
+INFO:kxd:Error from server (NotFound): nodes "k8s-lxd-125843" not found
 
-INFO:k8s-on-lxd:waiting for k8s to become ready on k8s-lxd-125843
-INFO:k8s-on-lxd:generated join token: 10.139.0.193:25000/6bd5a5a0041ff90b20c832fee6b364cc/686045620c28
-INFO:k8s-on-lxd:waiting for k8s to become ready on k8s-lxd-125843
-INFO:k8s-on-lxd:Error from server (NotFound): nodes "k8s-lxd-125843" not found
+INFO:kxd:waiting for k8s to become ready on k8s-lxd-125843
+INFO:kxd:generated join token: 10.139.0.193:25000/6bd5a5a0041ff90b20c832fee6b364cc/686045620c28
+INFO:kxd:waiting for k8s to become ready on k8s-lxd-125843
+INFO:kxd:Error from server (NotFound): nodes "k8s-lxd-125843" not found
 
-INFO:k8s-on-lxd:waiting for k8s to become ready on k8s-lxd-125843
-INFO:k8s-on-lxd:k8s-lxd-125843 successfully joined cluster
-INFO:k8s-on-lxd:to access cluster, execute: export KUBECONFIG=$(realpath kubeconfig.yml)
+INFO:kxd:waiting for k8s to become ready on k8s-lxd-125843
+INFO:kxd:k8s-lxd-125843 successfully joined cluster
+INFO:kxd:to access cluster, execute: export KUBECONFIG=$(realpath kubeconfig.yml)
 ```
 
 The resulting cluster looks like this:
@@ -77,7 +77,7 @@ k8s-lxd-125843   Ready    <none>   69s     v1.25.4
 list clusters:
 
 ```
-$ ./k8s-on-lxd --list
+$ ./kxd --list
 ceph
 mycluster
 default
@@ -86,7 +86,7 @@ default
 delete a cluster:
 
 ```
-$ ./k8s-on-lxd --delete --name mycluster
+$ ./kxd --delete --name mycluster
 privileged_main(): deleting cluster mycluster
 delete(): deleting node k8s-lxd-20f22
 delete(): deleting node k8s-lxd-c21a7
