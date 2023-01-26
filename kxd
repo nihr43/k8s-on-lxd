@@ -99,7 +99,7 @@ if __name__ == '__main__':
             logger.info('cluster {} created with members:'.format(k8s.name))
             for m in k8s.members:
                 logger.info(m.name)
-            c.fetch_kubeconfig(logger)
+            k8s.fetch_kubeconfig(logger)
 
         if args.kubectl:
             clusters = get_clusters(client, logger)
