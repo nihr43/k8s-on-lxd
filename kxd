@@ -85,7 +85,7 @@ if __name__ == '__main__':
         if args.list:
             clusters = get_clusters(client, logger)
             for c in clusters:
-                print(c.name)
+                print('{} | {} nodes'.format(c.name, len(c.members)))
 
         if args.delete:
             clusters = get_clusters(client, logger)
