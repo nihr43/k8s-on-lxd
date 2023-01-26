@@ -179,14 +179,21 @@ class Cluster:
             except json.decoder.JSONDecodeError:
                 continue
 
-    def delete(self, client, log):
+    def delete(self, client, log, pylxd):
         '''
         delete a cluster
         '''
         for i in self.members:
-            log.info('deleting node ' + i.name)
-            i.stop(wait=True)
+            try:
+                i.stop(wait=True)
+            except pylxd.exceptions.LXDAPIException as lxdapi_exception:
+                if str(lxdapi_exception) == 'The instance is already stopped':
+                    pass
+                else:
+                    log.info(lxdapi_exception)
+                    exit(1)
             i.delete(wait=True)
+            log.info(i.name + ' deleted')
 
     def start(self, client, log):
         '''

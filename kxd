@@ -92,7 +92,7 @@ if __name__ == '__main__':
             for c in clusters:
                 if c.name == args.name:
                     logger.info('deleting cluster ' + c.name)
-                    c.delete(client, logger)
+                    c.delete(client, logger, pylxd)
 
         if args.create:
             k8s = models.Cluster(args.name)
