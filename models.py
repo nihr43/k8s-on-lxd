@@ -198,6 +198,9 @@ class Cluster:
                 join_cluster(self.members[0], node, log)
 
     def fetch_kubeconfig(self, log):
+        '''
+        generates and writes a valid kubeconfig to kubeconfig.yml
+        '''
         cmd = self.members[0].execute(['/snap/bin/microk8s', 'kubectl', 'config', 'view', '--raw'])
         if cmd.exit_code != 0:
             log.info('failed fetching kubeconfig')
@@ -208,7 +211,12 @@ class Cluster:
         #   counting on enp5s0 .. [0] to be consistent for now..
         ip = self.members[0].state().network['enp5s0']['addresses'][0]['address']
         yaml = cmd.stdout.replace('127.0.0.1', ip)
-        return yaml
+
+        with open('kubeconfig.yml', 'w') as kubeconfig_yml:
+            kubeconfig_yml.truncate()
+            kubeconfig_yml.write(yaml)
+        log.info('to access cluster, execute:')
+        print('export KUBECONFIG=$(realpath kubeconfig.yml)')
 
     def fetch_members(self, client):
         '''

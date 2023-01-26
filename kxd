@@ -56,27 +56,26 @@ if __name__ == '__main__':
         client = pylxd.Client()
 
         parser = argparse.ArgumentParser()
-        parser.add_argument('--create', action='store_true')
+        parser.add_argument('--create', action='store', nargs='?', default=None, const='default')
         parser.add_argument('-n', type=int, default=3)
         parser.add_argument('--clean', action='store_true')
         parser.add_argument('--block-devices', type=int, default=0)
-        parser.add_argument('--name', type=str, default='default')
-        parser.add_argument('--delete', action='store_true')
-        parser.add_argument('--start', action='store_true')
-        parser.add_argument('--stop', action='store_true')
+        parser.add_argument('--delete', action='store', nargs='?', default=None, const='default')
+        parser.add_argument('--start', action='store', nargs='?', default=None, const='default')
+        parser.add_argument('--stop', action='store', nargs='?', default=None, const='default')
+        parser.add_argument('--kubectl', action='store', nargs='?', default=None, const='default')
         parser.add_argument('--list', action='store_true')
-        parser.add_argument('--kubectl', action='store_true')
         args = parser.parse_args()
 
         if args.start:
             clusters = get_clusters(client, logger)
             for c in clusters:
-                if c.name == args.name:
+                if c.name == args.start:
                     c.start(client, logger)
         elif args.stop:
             clusters = get_clusters(client, logger)
             for c in clusters:
-                if c.name == args.name:
+                if c.name == args.stop:
                     c.stop(client, logger)
 
         if args.clean:
@@ -90,24 +89,22 @@ if __name__ == '__main__':
         if args.delete:
             clusters = get_clusters(client, logger)
             for c in clusters:
-                if c.name == args.name:
+                if c.name == args.delete:
                     logger.info('deleting cluster ' + c.name)
                     c.delete(client, logger, pylxd)
 
         if args.create:
-            k8s = models.Cluster(args.name)
+            k8s = models.Cluster(args.create)
             k8s.create(args.n, client, logger)
-            logger.info(k8s.members)
+            logger.info('cluster {} created with members:'.format(k8s.name))
+            for m in k8s.members:
+                logger.info(m.name)
+            c.fetch_kubeconfig(logger)
 
-        if args.kubectl or args.create:
+        if args.kubectl:
             clusters = get_clusters(client, logger)
             for c in clusters:
-                if c.name == args.name:
+                if c.name == args.kubectl:
                     c.fetch_kubeconfig(logger)
-            kubeconfig_text = c.fetch_kubeconfig(logger)
-            with open('kubeconfig.yml', 'w') as kubeconfig_yml:
-                kubeconfig_yml.truncate()
-                kubeconfig_yml.write(kubeconfig_text)
-            logger.info('to access cluster, execute: export KUBECONFIG=$(realpath kubeconfig.yml)')
 
     privileged_main()
