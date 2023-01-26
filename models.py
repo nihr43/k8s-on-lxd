@@ -5,8 +5,8 @@ import json
 
 def bootstrap_node(instance, log):
     '''
-    installs microk8s on given instance
-    returns when microk8s node is "ready"
+    configures a given Instance
+    blocks until snapd is "ready"
     '''
     # "(execute) returns a tuple of (exit_code, stdout, stderr).
     #  This method will block while the command is executed"
@@ -19,11 +19,13 @@ def bootstrap_node(instance, log):
 
     '''
     snapd performs some bootstrapping asynchronously with 'apt install',
-    so subsequent 'snap install's can fail for a monent.
+    so subsequent 'snap install's can fail for a moment.
+    therefore we run this 'snap refesh' as a dummy-op to ensure snapd is
+    up before continuing.
     '''
     count = 30
     for i in range(count):
-        out = instance.execute(['snap', 'install', 'microk8s', '--classic'])
+        out = instance.execute(['snap', 'refresh'])
         if out.exit_code == 0:
             log.info(out.stdout)
             break
@@ -32,7 +34,25 @@ def bootstrap_node(instance, log):
             exit(1)
         log.info(out.stderr)
         time.sleep(2)
-    assert_kubernetes_ready(instance, log)
+
+
+def install_snap(instance, snap, log):
+    '''
+    given an Instance, install the Snap
+    '''
+    instance.files.put('/root/{}.snap'.format(snap.name), snap.snap)
+    instance.files.put('/root/{}.assert'.format(snap.name), snap.assertion)
+    err = instance.execute(['snap', 'ack', '/root/{}.assert'.format(snap.name)])
+    if err.exit_code != 0:
+        log.info(err.stderr)
+        exit(1)
+    log.info(err.stdout)
+
+    err = instance.execute(['snap', 'install', '/root/{}.snap'.format(snap.name), '--classic'])
+    if err.exit_code != 0:
+        log.info(err.stderr)
+        exit(1)
+    log.info(err.stdout)
 
 
 def assert_kubernetes_ready(instance, log):
@@ -115,15 +135,35 @@ def wait_until_ready(instance, log):
 
 class Snap:
     '''
-    a snap assert and data file
-    cat json | jq '."channel-map"[] | select(.channel.name | index("1.10/stable"))'
+    a snap assertion and data file
     '''
-    def __init__(self, name, instance, log):
+    def __init__(self, name, inst, log):
         '''
-        to initialize a Snap, we need a name an possibly a channel
+        to initialize a Snap, we need a name and an Instance
+
+        i would of course prefer to get these directly from the snapcraft api, but
+        it is not trivial to retrieve the assertions.
+        curiously, it is trivial to pull assertions out of the snapd rest api
+        itself, but we are not assuming the user has snapd running; only lxd.
+
+        heres a one-liner to inspect snap metadata of a given channel:
+
+        curl -H 'Snap-Device-Series: 16' http://api.snapcraft.io/v2/snaps/info/microk8s\
+          | jq '."channel-map"[] | select(.channel.name | index("1.26/stable"))'
         '''
         self.name = name
 
+        err = inst.execute(['snap', 'download', self.name,
+                            '--target-directory=/tmp/',
+                            '--basename={}'.format(self.name)])
+        if err.exit_code != 0:
+            log.info(err.sterr)
+            exit(1)
+        log.info(err.stdout)
+
+        log.info('retrieving initial snap')
+        self.snap = inst.files.get('/tmp/{}.snap'.format(self.name))
+        self.assertion = inst.files.get('/tmp/{}.assert'.format(self.name))
 
 
 class Cluster:
@@ -139,17 +179,21 @@ class Cluster:
         a cluster object can exist without having been 'created'.
         given a cluster, create the nodes in lxd.
         '''
+
         for i in range(size):
             node = create_node(client, 0, log)
             node.description = '{"k8s-lxd-managed": true, "name": "%s"}'%self.name
             node.save(wait=True)
-
-            # only the first node will download microk8s
-            if i = 0:
-                microk8s = snap('microk8s', node, log)
-
             bootstrap_node(node, log)
             self.members.append(node)
+
+            # only use the fist node to download the Snap
+            if i == 0:
+                microk8s = Snap('microk8s', node, log)
+
+            install_snap(node, microk8s, log)
+            assert_kubernetes_ready(node, log)
+
             if i != 0:
                 join_cluster(self.members[0], node, log)
 
