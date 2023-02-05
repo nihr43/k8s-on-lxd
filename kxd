@@ -65,7 +65,7 @@ if __name__ == '__main__':
         parser.add_argument('--start', action='store', nargs='?', default=None, const='default')
         parser.add_argument('--stop', action='store', nargs='?', default=None, const='default')
         parser.add_argument('--kubectl', action='store', nargs='?', default=None, const='default')
-        parser.add_argument('--list', action='store_true')
+        parser.add_argument('--list', '-l', action='store_true')
         args = parser.parse_args()
 
         if args.start:
