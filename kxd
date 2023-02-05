@@ -57,6 +57,7 @@ if __name__ == '__main__':
 
         parser = argparse.ArgumentParser()
         parser.add_argument('--create', action='store', nargs='?', default=None, const='default')
+        parser.add_argument('--channel', action='store', nargs='?', default=None, const='default')
         parser.add_argument('-n', type=int, default=3)
         parser.add_argument('--clean', action='store_true')
         parser.add_argument('--block-devices', type=int, default=0)
@@ -95,7 +96,13 @@ if __name__ == '__main__':
 
         if args.create:
             k8s = models.Cluster(args.create)
-            k8s.create(args.n, client, logger)
+
+            if not args.channel:
+                channel = 'latest/stable'
+            else:
+                channel = args.channel
+
+            k8s.create(args.n, channel, client, logger)
             logger.info('cluster {} created with members:'.format(k8s.name))
             for m in k8s.members:
                 logger.info(m.name)

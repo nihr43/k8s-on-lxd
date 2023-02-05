@@ -79,6 +79,8 @@ def join_cluster(leader, join_node, log):
     given the leader node and a node to be joined,
     add the new node and wait until ready.
     both are of type lxd instance.
+
+    channels below 1.24 do not support the '--format=json' feature.
     '''
     add_node = leader.execute(['/snap/bin/microk8s', 'add-node', '--format=json'])
     if add_node.exit_code != 0:
@@ -137,7 +139,7 @@ class Snap:
     '''
     a snap assertion and data file
     '''
-    def __init__(self, name, inst, log):
+    def __init__(self, name, channel, inst, log):
         '''
         to initialize a Snap, we need a name and an Instance
 
@@ -154,6 +156,7 @@ class Snap:
         self.name = name
 
         err = inst.execute(['snap', 'download', self.name,
+                            '--channel={}'.format(channel),
                             '--target-directory=/tmp/',
                             '--basename={}'.format(self.name)])
         if err.exit_code != 0:
@@ -174,7 +177,7 @@ class Cluster:
         self.name = name
         self.members = []  # list of lxd Instances https://github.com/lxc/pylxd/blob/master/pylxd/models/instance.py
 
-    def create(self, size, client, log):
+    def create(self, size, channel, client, log):
         '''
         a cluster object can exist without having been 'created'.
         given a cluster, create the nodes in lxd.
@@ -182,14 +185,14 @@ class Cluster:
 
         for i in range(size):
             node = create_node(client, 0, log)
-            node.description = '{"k8s-lxd-managed": true, "name": "%s"}'%self.name
+            node.description = '{"k8s-lxd-managed": true, "name": "%s"}' % self.name
             node.save(wait=True)
             bootstrap_node(node, log)
             self.members.append(node)
 
             # only use the fist node to download the Snap
             if i == 0:
-                microk8s = Snap('microk8s', node, log)
+                microk8s = Snap('microk8s', channel, node, log)
 
             install_snap(node, microk8s, log)
             assert_kubernetes_ready(node, log)
