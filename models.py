@@ -103,9 +103,13 @@ def create_node(client, block_devices, log):
                          'server': 'https://images.linuxcontainers.org',
                          'protocol': 'simplestreams',
                          'alias': 'ubuntu/22.10'},
-              'config': {'limits.cpu': '2',
+              'config': {'limits.cpu': '3',
                          'limits.memory': '8GB'},
-              'type': 'virtual-machine'}
+              'type': 'virtual-machine',
+              'devices': {'root': {'path': '/',
+                                   'pool': 'default',
+                                   'size': '16GB',
+                                   'type': 'disk'}}}
     log.info('creating node ' + name)
     inst = client.instances.create(config, wait=True)
     '''
