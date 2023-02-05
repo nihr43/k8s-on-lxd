@@ -29,7 +29,7 @@ def bootstrap_node(instance, log):
         if out.exit_code == 0:
             log.info(out.stdout)
             break
-        if i == count-1:
+        if i == count - 1:
             log.info('timed out waiting for snapd')
             exit(1)
         log.info(out.stderr)
@@ -67,7 +67,7 @@ def assert_kubernetes_ready(instance, log):
         out = instance.execute(['/snap/bin/microk8s', 'kubectl', 'wait', '--for=condition=ready', 'node', instance.name])
         if out.exit_code == 0:
             break
-        if i == count-1:
+        if i == count - 1:
             log.info('timed out waiting for microk8s')
             exit(1)
         log.info(out.stderr)
@@ -128,7 +128,7 @@ def wait_until_ready(instance, log):
     for i in range(count):
         if instance.execute(['hostname']).exit_code == 0:
             break
-        if i == count-1:
+        if i == count - 1:
             log.info('timed out waiting')
             exit(1)
         log.info('waiting for lxd agent on ' + instance.name)
