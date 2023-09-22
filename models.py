@@ -88,7 +88,7 @@ def assert_kubernetes_ready(instance, log):
     """
     count = 30
     for i in range(count):
-        log.info("waiting for k8s to become ready on " + instance.name)
+        log.info("waiting for k8s to become ready on {}".format(instance.name))
         out = instance.execute(
             [
                 "/snap/bin/microk8s",
@@ -120,15 +120,15 @@ def join_cluster(leader, join_node, log):
         raise RuntimeError("unable to generate cluster join token")
     add_node_json = json.loads(add_node.stdout)
     join_token = add_node_json["urls"][0]
-    log.info("generated join token: " + join_token)
+    log.info("generated join token: {}".format(join_token))
 
     join_node.execute(["/snap/bin/microk8s", "join", join_token])
     assert_kubernetes_ready(join_node, log)
-    log.info(join_node.name + " successfully joined cluster")
+    log.info("{} successfully joined cluster".format(join_node.name))
 
 
 def create_node(client, block_devices, log):
-    name = "k8s-lxd-" + str(uuid.uuid4())[0:5]
+    name = "k8s-lxd-{}".format(str(uuid.uuid4())[0:5])
     config = {
         "name": name,
         "source": {
@@ -144,7 +144,7 @@ def create_node(client, block_devices, log):
             "root": {"path": "/", "pool": "default", "size": "16GB", "type": "disk"}
         },
     }
-    log.info("creating node " + name)
+    log.info("creating node {}".format(name))
     inst = client.instances.create(config, wait=True)
     """
     # these are ~additional~ block devices
@@ -169,7 +169,7 @@ def wait_until_ready(instance, log):
                 break
             if i == count - 1:
                 raise RuntimeError("timed out waiting")
-            log.info("waiting for lxd agent on " + instance.name)
+            log.info("waiting for lxd agent on {}".format(instance.name))
         except ConnectionResetError:
             pass
         except BrokenPipeError:
@@ -299,14 +299,14 @@ class Cluster:
                 else:
                     raise RuntimeError(lxdapi_exception)
             i.delete(wait=True)
-            log.info(i.name + " deleted")
+            log.info("{} deleted".format(i.name))
 
     def start(self, client, log):
         """
         start all nodes in a cluster
         """
         for i in self.members:
-            log.info("starting node " + i.name)
+            log.info("starting node {}".format(i.name))
             i.start(wait=True)
 
     def stop(self, client, log):
@@ -314,5 +314,5 @@ class Cluster:
         stop all nodes in a cluster
         """
         for i in self.members:
-            log.info("stopping node " + i.name)
+            log.info("stopping node {}".format(i.name))
             i.stop(wait=True)
