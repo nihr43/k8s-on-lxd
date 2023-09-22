@@ -1,1 +1,5 @@
 kubeconfig.yml
+__pycache__/
+build/
+kxd.egg-info/
+kxd/__pycache__/
