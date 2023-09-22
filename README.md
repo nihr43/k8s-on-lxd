@@ -96,12 +96,16 @@ $ kubectl get nodes
 NAME            STATUS   ROLES    AGE   VERSION
 k8s-lxd-303b5   Ready    <none>   20m   v1.26.0
 k8s-lxd-77c97   Ready    <none>   17m   v1.26.0
+$
 $ kxd --list
 default | 2 nodes
 readme | 4 nodes
+$
 $ kxd --kubectl readme
 fetch_kubeconfig(): to access cluster, execute:
 export KUBECONFIG=$(realpath kubeconfig.yml)
+$
+$ export KUBECONFIG=$(realpath kubeconfig.yml)
 $ kubectl get nodes
 NAME            STATUS   ROLES    AGE     VERSION
 k8s-lxd-74e19   Ready    <none>   9m36s   v1.26.0
