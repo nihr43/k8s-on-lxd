@@ -7,4 +7,9 @@ setup(
     author="Nathan Hensel",
     packages=["kxd"],
     install_requires=["pylxd"],
+    entry_points={
+        "console_scripts": [
+            "kxd = kxd.cmd:main",
+        ]
+    },
 )

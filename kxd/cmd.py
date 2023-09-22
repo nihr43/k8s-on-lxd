@@ -1,7 +1,11 @@
 #!/usr/bin/python3
 
 import json
-import models
+
+try:
+    from . import models
+except ImportError:
+    import models
 
 
 def cleanup(client, log):

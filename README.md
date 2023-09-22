@@ -8,10 +8,22 @@ This cluster is built to mirror my own physical hardware for "staging" and resea
 
 It is assumed your user is already configured to use lxd.
 
+kxd can be installed using pip:
+
+```
+pip3 install git+https://github.com/nihr43/kxd --break-system-packages
+```
+
+or run as a directory:
+
+```
+python3 kxd/ --help
+```
+
 Create a two node cluster:
 
 ```
-$ python3 . --create -n2
+$ kxd --create -n2
 create_node(): creating node k8s-lxd-303b5
 wait_until_ready(): waiting for lxd agent on k8s-lxd-303b5
 bootstrap_node(): snapd installed
@@ -46,7 +58,7 @@ export KUBECONFIG=$(realpath kubeconfig.yml)
 when a cluster name is not provided, 'default' is used:
 
 ```
-$ python3 . --list
+$ kxd --list
 default | 2 nodes
 ```
 
@@ -84,10 +96,10 @@ $ kubectl get nodes
 NAME            STATUS   ROLES    AGE   VERSION
 k8s-lxd-303b5   Ready    <none>   20m   v1.26.0
 k8s-lxd-77c97   Ready    <none>   17m   v1.26.0
-$ python3 . --list
+$ kxd --list
 default | 2 nodes
 readme | 4 nodes
-$ python3 . --kubectl readme
+$ kxd --kubectl readme
 fetch_kubeconfig(): to access cluster, execute:
 export KUBECONFIG=$(realpath kubeconfig.yml)
 $ kubectl get nodes
@@ -101,7 +113,7 @@ k8s-lxd-9302d   Ready    <none>   11m     v1.26.0
 delete a cluster:
 
 ```
-$ python3 . --delete mycluster
+$ kxd --delete mycluster
 privileged_main(): deleting cluster mycluster
 delete(): deleting node k8s-lxd-20f22
 delete(): deleting node k8s-lxd-c21a7
