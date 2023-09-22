@@ -11,7 +11,7 @@ def bootstrap_node(instance, log):
     # "(execute) returns a tuple of (exit_code, stdout, stderr).
     #  This method will block while the command is executed"
     # snapd appears to perform some bootstrapping actions after this exits
-    out = instance.execute(['apt', 'install', 'snapd', '-y'])
+    poll_cmd(instance, 'apt install snapd -y', log)
     log.info('snapd installed')
     instance.execute(['growpart', '/dev/sda', '2'])
     instance.execute(['resize2fs', '/dev/sda2'])
@@ -23,17 +23,42 @@ def bootstrap_node(instance, log):
     therefore we run this 'snap refesh' as a dummy-op to ensure snapd is
     up before continuing.
     '''
+    poll_cmd(instance, 'snap refresh', log)
+
+
+def poll_cmd(instance, cmd, log):
+    """
+    given a shell string, retries for up to a minute for return code == 1.
+    """
     count = 30
     for i in range(count):
-        out = instance.execute(['snap', 'refresh'])
-        if out.exit_code == 0:
-            log.info(out.stdout)
-            break
         if i == count - 1:
-            log.info('timed out waiting for snapd')
-            exit(1)
-        log.info(out.stderr)
+            raise RuntimeError(
+                "timed out waiting for command `{}` on {}".format(cmd, instance.name)
+            )
+
+        log.debug("waiting for command `{}` on {}".format(cmd, instance.name))
         time.sleep(2)
+        try:
+            res = wrap_cmd(instance, cmd, log)
+            if res.exit_code == 0:
+                return res
+        except RuntimeError:
+            continue
+        except BrokenPipeError:
+            continue
+        except ConnectionResetError:
+            continue
+
+
+def wrap_cmd(instance, cmd, log):
+    log.debug("executing `{}` on {}".format(cmd, instance.name))
+    res = instance.execute(cmd.split())
+    if res.exit_code != 0:
+        raise RuntimeError(res.stderr)
+    if res.stdout:
+        log.debug(res.stdout)
+    return res
 
 
 def install_snap(instance, snap, log):
@@ -102,12 +127,12 @@ def create_node(client, block_devices, log):
                          'mode': 'pull',
                          'server': 'https://images.linuxcontainers.org',
                          'protocol': 'simplestreams',
-                         'alias': 'ubuntu/22.10'},
+                         'alias': 'ubuntu/mantic'},
               'config': {'limits.cpu': '3',
                          'limits.memory': '8GB'},
               'type': 'virtual-machine',
               'devices': {'root': {'path': '/',
-                                   'pool': 'default',
+                                   'pool': 'remote',
                                    'size': '16GB',
                                    'type': 'disk'}}}
     log.info('creating node ' + name)
@@ -130,12 +155,15 @@ def wait_until_ready(instance, log):
     '''
     count = 30
     for i in range(count):
-        if instance.execute(['hostname']).exit_code == 0:
-            break
-        if i == count - 1:
-            log.info('timed out waiting')
-            exit(1)
-        log.info('waiting for lxd agent on ' + instance.name)
+        try:
+            if instance.execute(['hostname']).exit_code == 0:
+                break
+            if i == count - 1:
+                log.info('timed out waiting')
+                exit(1)
+            log.info('waiting for lxd agent on ' + instance.name)
+        except ConnectionResetError:
+            pass
         time.sleep(2)
 
 
@@ -164,7 +192,7 @@ class Snap:
                             '--target-directory=/tmp/',
                             '--basename={}'.format(self.name)])
         if err.exit_code != 0:
-            log.info(err.sterr)
+            log.info(err.stderr)
             exit(1)
         log.info(err.stdout)
 
