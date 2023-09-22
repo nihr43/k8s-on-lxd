@@ -172,6 +172,8 @@ def wait_until_ready(instance, log):
             log.info("waiting for lxd agent on " + instance.name)
         except ConnectionResetError:
             pass
+        except BrokenPipeError:
+            pass
         time.sleep(2)
 
 
