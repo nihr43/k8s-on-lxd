@@ -69,16 +69,14 @@ def install_snap(instance, snap, log):
     instance.files.put("/root/{}.assert".format(snap.name), snap.assertion)
     err = instance.execute(["snap", "ack", "/root/{}.assert".format(snap.name)])
     if err.exit_code != 0:
-        log.info(err.stderr)
-        exit(1)
+        raise RuntimeError(err.stderr)
     log.info(err.stdout)
 
     err = instance.execute(
         ["snap", "install", "/root/{}.snap".format(snap.name), "--classic"]
     )
     if err.exit_code != 0:
-        log.info(err.stderr)
-        exit(1)
+        raise RuntimeError(err.stderr)
     log.info(err.stdout)
 
 
@@ -104,8 +102,7 @@ def assert_kubernetes_ready(instance, log):
         if out.exit_code == 0:
             break
         if i == count - 1:
-            log.info("timed out waiting for microk8s")
-            exit(1)
+            raise RuntimeError("timed out waiting for microk8s")
         log.info(out.stderr)
         time.sleep(2)
 
@@ -120,8 +117,7 @@ def join_cluster(leader, join_node, log):
     """
     add_node = leader.execute(["/snap/bin/microk8s", "add-node", "--format=json"])
     if add_node.exit_code != 0:
-        log.info("unable to generate cluster join token")
-        exit(1)
+        raise RuntimeError("unable to generate cluster join token")
     add_node_json = json.loads(add_node.stdout)
     join_token = add_node_json["urls"][0]
     log.info("generated join token: " + join_token)
@@ -172,8 +168,7 @@ def wait_until_ready(instance, log):
             if instance.execute(["hostname"]).exit_code == 0:
                 break
             if i == count - 1:
-                log.info("timed out waiting")
-                exit(1)
+                raise RuntimeError("timed out waiting")
             log.info("waiting for lxd agent on " + instance.name)
         except ConnectionResetError:
             pass
@@ -212,8 +207,7 @@ class Snap:
             ]
         )
         if err.exit_code != 0:
-            log.info(err.stderr)
-            exit(1)
+            raise RuntimeError(err.stderr)
         log.info(err.stdout)
 
         log.info("retrieving initial snap")
@@ -264,8 +258,7 @@ class Cluster:
         )
         if cmd.exit_code != 0:
             log.info("failed fetching kubeconfig")
-            log.info(cmd.stderr)
-            exit(1)
+            raise RuntimeError(cmd.stderr)
 
         # we need to swap '127.0.0.1' for an ip reachable from the host
         #   counting on enp5s0 .. [0] to be consistent for now..
@@ -302,8 +295,7 @@ class Cluster:
                 if str(lxdapi_exception) == "The instance is already stopped":
                     pass
                 else:
-                    log.info(lxdapi_exception)
-                    exit(1)
+                    raise RuntimeError(lxdapi_exception)
             i.delete(wait=True)
             log.info(i.name + " deleted")
 
