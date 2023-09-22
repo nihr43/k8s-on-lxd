@@ -11,7 +11,7 @@ It is assumed your user is already configured to use lxd.
 kxd can be installed using pip:
 
 ```
-pip3 install git+https://github.com/nihr43/kxd --break-system-packages
+pip3 install --user git+https://github.com/nihr43/kxd --break-system-packages
 ```
 
 or run as a directory:
