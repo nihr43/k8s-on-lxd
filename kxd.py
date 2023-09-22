@@ -78,7 +78,7 @@ def main():
     parser.add_argument("--list", "-l", action="store_true")
     args = parser.parse_args()
 
-    client = pylxd.Client(endpoint="https://10.0.200.0:8443")
+    client = pylxd.Client()
 
     if args.start:
         clusters = get_clusters(client, logger)

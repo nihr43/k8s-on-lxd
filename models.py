@@ -145,7 +145,7 @@ def create_node(client, block_devices, log):
         "config": {"limits.cpu": "3", "limits.memory": "8GB"},
         "type": "virtual-machine",
         "devices": {
-            "root": {"path": "/", "pool": "remote", "size": "16GB", "type": "disk"}
+            "root": {"path": "/", "pool": "default", "size": "16GB", "type": "disk"}
         },
     }
     log.info("creating node " + name)
