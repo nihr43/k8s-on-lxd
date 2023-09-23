@@ -1,3 +1,3 @@
 lint:
 	black .
-	flake8 *.py --ignore E501
+	flake8 kxd/ --ignore E501
