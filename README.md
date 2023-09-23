@@ -1,8 +1,6 @@
 # kxd
 
-Provision a k8s cluster on lxd qemu-kvm instances using microk8s.
-
-This cluster is built to mirror my own physical hardware for "staging" and research purposes; [minikube](https://github.com/kubernetes/minikube) is probably of more use to you.
+Provision a k8s cluster on lxd qemu-kvm instances running microk8s.
 
 ## usage
 
