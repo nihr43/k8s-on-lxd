@@ -1,6 +1,7 @@
 import uuid
 import time
 import json
+from pathlib import Path
 
 
 def bootstrap_node(instance, log):
@@ -267,11 +268,13 @@ class Cluster:
         ip = self.members[0].state().network["enp5s0"]["addresses"][0]["address"]
         yaml = cmd.stdout.replace("127.0.0.1", ip)
 
-        with open("kubeconfig.yml", "w") as kubeconfig_yml:
+        Path("/tmp/kxd").mkdir(parents=True, exist_ok=True)
+
+        with open("/tmp/kxd/kubeconfig.yml", "w") as kubeconfig_yml:
             kubeconfig_yml.truncate()
             kubeconfig_yml.write(yaml)
         log.info("to access cluster, execute:")
-        print("export KUBECONFIG=$(realpath kubeconfig.yml)")
+        print("export KUBECONFIG=/tmp/kxd/kubeconfig.yml")
 
     def fetch_members(self, client):
         """
