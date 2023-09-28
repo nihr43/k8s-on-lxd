@@ -12,10 +12,10 @@ kxd can be installed using pip:
 pip3 install --user git+https://github.com/nihr43/kxd --break-system-packages
 ```
 
-or run as a directory:
+or invoked as a module on the local directory:
 
 ```
-python3 kxd/ --help
+python3 -m kxd --help
 ```
 
 Create a two node cluster:
