@@ -1,36 +1,9 @@
-import json
-
 try:
     from . import models
+    from . import utils
 except ImportError:
     import models
-
-
-def get_clusters(client, log):
-    """
-    find clusters from json embedded in Instance descriptions.
-    using these cluster names, construct and return list of Cluster objects.
-    """
-    cluster_tags_found = []
-    for i in client.instances.all():
-        cluster_tags_found.append(i.description)
-
-    distinct_tags = []
-    for t in cluster_tags_found:
-        try:
-            unmarshalled_json = json.loads(t)
-            if unmarshalled_json["kxd-managed"]:
-                if unmarshalled_json["name"] not in distinct_tags:
-                    distinct_tags.append(unmarshalled_json["name"])
-        except json.decoder.JSONDecodeError:
-            continue
-
-    clusters = []
-    for t in distinct_tags:
-        c = models.Cluster(t)
-        c.fetch_members(client)
-        clusters.append(c)
-    return clusters
+    import utils
 
 
 def main():
@@ -70,28 +43,28 @@ def main():
     client = pylxd.Client()
 
     if args.start:
-        clusters = get_clusters(client, logger)
+        clusters = utils.get_clusters(client, logger)
         for c in clusters:
             if c.name == args.start:
                 c.start(client, logger)
     elif args.stop:
-        clusters = get_clusters(client, logger)
+        clusters = utils.get_clusters(client, logger)
         for c in clusters:
             if c.name == args.stop:
                 c.stop(client, logger)
 
     if args.clean:
-        clusters = get_clusters(client, logger)
+        clusters = utils.get_clusters(client, logger)
         for c in clusters:
             c.delete(client, logger, pylxd)
 
     if args.list:
-        clusters = get_clusters(client, logger)
+        clusters = utils.get_clusters(client, logger)
         for c in clusters:
             print("{} | {} nodes".format(c.name, len(c.members)))
 
     if args.delete:
-        clusters = get_clusters(client, logger)
+        clusters = utils.get_clusters(client, logger)
         for c in clusters:
             if c.name == args.delete:
                 logger.info("deleting cluster " + c.name)
@@ -112,7 +85,7 @@ def main():
         k8s.fetch_kubeconfig(logger)
 
     if args.kubectl:
-        clusters = get_clusters(client, logger)
+        clusters = utils.get_clusters(client, logger)
         for c in clusters:
             if c.name == args.kubectl:
                 c.fetch_kubeconfig(logger)
