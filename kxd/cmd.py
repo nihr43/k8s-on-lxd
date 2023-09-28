@@ -6,19 +6,6 @@ except ImportError:
     import models
 
 
-def cleanup(client, log):
-    instances_to_delete = []
-    for i in client.instances.all():
-        if i.name.startswith("k8s-lxd"):
-            log.info("found " + i.name)
-            instances_to_delete.append(i)
-
-    for i in instances_to_delete:
-        i.stop(wait=True)
-        i.delete()
-        log.info(i.name + " deleted")
-
-
 def get_clusters(client, log):
     """
     find clusters from json embedded in Instance descriptions.
@@ -94,7 +81,9 @@ def main():
                 c.stop(client, logger)
 
     if args.clean:
-        cleanup(client, logger)
+        clusters = get_clusters(client, logger)
+        for c in clusters:
+            c.delete(client, logger, pylxd)
 
     if args.list:
         clusters = get_clusters(client, logger)
