@@ -2,10 +2,7 @@ import uuid
 import time
 import json
 
-try:
-    from . import models
-except ImportError:
-    import models
+from kxd import models
 
 
 def get_clusters(client, log):

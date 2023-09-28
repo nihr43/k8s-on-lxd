@@ -1,9 +1,5 @@
-try:
-    from . import models
-    from . import utils
-except ImportError:
-    import models
-    import utils
+from kxd import models
+from kxd import utils
 
 
 def main():

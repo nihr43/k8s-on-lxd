@@ -1,4 +1,4 @@
-import cmd
+from kxd import cmd
 import sys
 
 if __name__ == "__main__":

@@ -1,10 +1,7 @@
 import json
 from pathlib import Path
 
-try:
-    from . import utils
-except ImportError:
-    import utils
+from kxd import utils
 
 
 class Snap:
