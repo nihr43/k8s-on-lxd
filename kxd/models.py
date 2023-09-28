@@ -129,7 +129,7 @@ def join_cluster(leader, join_node, log):
 
 
 def create_node(client, block_devices, log):
-    name = "k8s-lxd-{}".format(str(uuid.uuid4())[0:5])
+    name = "kxd-{}".format(str(uuid.uuid4())[0:5])
     config = {
         "name": name,
         "source": {
@@ -237,7 +237,7 @@ class Cluster:
 
         for i in range(size):
             node = create_node(client, 0, log)
-            node.description = '{"k8s-lxd-managed": true, "name": "%s"}' % self.name
+            node.description = '{"kxd-managed": true, "name": "%s"}' % self.name
             node.save(wait=True)
             bootstrap_node(node, log)
             self.members.append(node)
@@ -284,7 +284,7 @@ class Cluster:
         for i in client.instances.all():
             try:
                 js = json.loads(i.description)
-                if js["k8s-lxd-managed"] is True and js["name"] == self.name:
+                if js["kxd-managed"] is True and js["name"] == self.name:
                     self.members.append(i)
             except json.decoder.JSONDecodeError:
                 continue

@@ -19,7 +19,7 @@ def get_clusters(client, log):
     for t in cluster_tags_found:
         try:
             unmarshalled_json = json.loads(t)
-            if unmarshalled_json["k8s-lxd-managed"]:
+            if unmarshalled_json["kxd-managed"]:
                 if unmarshalled_json["name"] not in distinct_tags:
                     distinct_tags.append(unmarshalled_json["name"])
         except json.decoder.JSONDecodeError:
