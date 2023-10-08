@@ -13,16 +13,33 @@ def main():
 
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--create", action="store", nargs="?", default=None, const="default"
+        "--create",
+        action="store",
+        nargs="?",
+        default=None,
+        const="default",
+        help="Create a cluster.",
     )
     parser.add_argument(
-        "--channel", action="store", nargs="?", default=None, const="default"
+        "--channel",
+        action="store",
+        nargs="?",
+        default=None,
+        const="default",
+        help="Microceph snap channel to install.",
     )
-    parser.add_argument("-n", type=int, default=3)
-    parser.add_argument("--clean", action="store_true")
+    parser.add_argument(
+        "-n", type=int, default=3, help="Number of nodes.  Defaults to 3."
+    )
+    parser.add_argument("--clean", action="store_true", help="Delete all kxd nodes.")
     parser.add_argument("--block-devices", type=int, default=0)
     parser.add_argument(
-        "--delete", action="store", nargs="?", default=None, const="default"
+        "--delete",
+        action="store",
+        nargs="?",
+        default=None,
+        const="default",
+        help="Delete a specific cluster by name.  Defaults to 'default'.",
     )
     parser.add_argument(
         "--start", action="store", nargs="?", default=None, const="default"
@@ -31,7 +48,12 @@ def main():
         "--stop", action="store", nargs="?", default=None, const="default"
     )
     parser.add_argument(
-        "--kubectl", action="store", nargs="?", default=None, const="default"
+        "--kubectl",
+        action="store",
+        nargs="?",
+        default=None,
+        const="default",
+        help="Fetch kubectl config for cluster by name.  Defaults to 'default'.",
     )
     parser.add_argument("--list", "-l", action="store_true")
     args = parser.parse_args()
